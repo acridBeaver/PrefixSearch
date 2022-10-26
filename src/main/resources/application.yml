@@ -1,0 +1,3 @@
+app:
+  column-number: 2
+  filename: "./src/main/resources/airports.dat"
