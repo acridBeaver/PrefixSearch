@@ -65,7 +65,8 @@ public class CsvReader implements DataManager{
             for (long offset : content.get(key)) {
                 raf.seek(offset);
                 var line = raf.readLine();
-                result.add(String.format("%s[%s]", key, line));
+                result.add(key);
+                result.add(line);
             }
 
         raf.close();
@@ -92,8 +93,8 @@ public class CsvReader implements DataManager{
         df.setMaximumFractionDigits(15);
         for (Double key : tree.keySet()){
             for (String line : tree.get(key)) {
-                System.out.println(key);
-                result.add(String.format("%s[%s]", df.format(key), line));
+                result.add(df.format(key));
+                result.add(line);
             }
         }
         return result.toArray(new String[0]);
