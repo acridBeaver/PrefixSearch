@@ -3,13 +3,9 @@ package com.searcher.core;
 import com.searcher.core.dataworkers.DataManager;
 import com.searcher.core.searchers.Searcher;
 import org.apache.commons.lang3.time.StopWatch;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 
-@Component
-@Scope("prototype")
 public class SearchEngine {
     private String[] data;
     private final DataManager dataManager;

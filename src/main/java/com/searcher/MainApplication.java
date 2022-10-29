@@ -1,34 +1,31 @@
 package com.searcher;
 
-import com.google.common.primitives.Ints;
 import com.searcher.core.SearchEngine;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.PropertySource;
+import com.searcher.core.dataworkers.CsvReader;
+import com.searcher.core.dataworkers.DataManager;
+import com.searcher.core.searchers.PrefixSearcher;
+import com.searcher.core.searchers.Searcher;
 
 import java.util.Scanner;
 
-@SpringBootApplication
-@PropertySource("classpath:application.yml")
-public class MainApplication implements CommandLineRunner {
-    private SearchEngine searchEngine;
+public class MainApplication {
+    private static SearchEngine searchEngine;
 
     public static void main(String [] args) {
-        if (args.length > 0 && Ints.tryParse(args[0]) != null)
-            SpringApplication.run(MainApplication.class, args);
+        if (args.length > 0 && args[0].matches("\\d+")) {
+            engine(new CsvReader("./src/main/resources/airports.dat"),
+                    new PrefixSearcher());
+            run(args);
+        }
         else
             System.out.println("Необходимо ввести  аргумент: целое число номер колонки для поиска");
     }
 
-    @Autowired
-    public void engine(SearchEngine engine) {
-        searchEngine = engine;
+    public static void engine(DataManager dataManager, Searcher searcher) {
+        searchEngine = new SearchEngine(dataManager, searcher);
     }
 
-    @Override
-    public void run(String... args) {
+    public static void run(String... args) {
         searchEngine.setColumn(Integer.parseInt(args[0]));
         var inputScanner = new Scanner(System.in);
         System.out.print("Введите строку: ");

@@ -1,15 +1,8 @@
 package com.searcher.core.searchers;
 
-import com.searcher.core.dataworkers.CsvReader;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
 import java.util.Arrays;
 import java.util.Comparator;
 
-@Component
-@Scope("prototype")
 public class PrefixSearcher implements Searcher {
     private final PrefixComparator comparator;
 

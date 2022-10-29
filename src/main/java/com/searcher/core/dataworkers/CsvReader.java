@@ -1,11 +1,5 @@
 package com.searcher.core.dataworkers;
 
-import com.google.common.collect.TreeMultimap;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -15,15 +9,12 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
 
-@Component
-@Scope("prototype")
-@PropertySource("classpath:application.yml")
 public class CsvReader implements DataManager{
-    private final MultiTree<String, Integer> content;
+    private final MultiTree<String, Long> content;
     private final String filePath;
     private Boolean isString;
 
-    public CsvReader(@Value("${app.filename}") String filePath){
+    public CsvReader(String filePath){
         this.filePath = filePath;
         content = new MultiTree<>();
         isString = false;
@@ -36,38 +27,24 @@ public class CsvReader implements DataManager{
         columnNumber--;
         try {
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
-            int offset = 0;
+            long offset = 0L;
             var str = reader.readLine();
-            if (columnNumber >= split(str).length)
-                throw new IllegalArgumentException("максимальный номер колонки = " + split(str).length);
-            if (split(str)[columnNumber].startsWith("\""))
+            if (columnNumber >= str.split(",(?! )").length)
+                throw new IllegalArgumentException("максимальный номер колонки = " + str.split(",(?! )").length);
+            if (str.split(",(?! )")[columnNumber].startsWith("\""))
                 isString = true;
             while (str != null){
-                String[] line = split(str);
+                String[] line = str.split(",(?! )");
                 content.put(line[columnNumber], offset);
                 offset += str.getBytes(StandardCharsets.UTF_8).length + 1;
                 str = reader.readLine();
-
             }
+
+            reader.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return content.keySet().toArray(new String[0]);
-    }
-
-    private String[] split(String str){
-        var result = new ArrayList<String>();
-        var charArr = str.toCharArray();
-        var firstChar = 0;
-        var lastChar = 0;
-        for (lastChar = 1; lastChar < str.length(); lastChar++) {
-            if ((charArr[lastChar] == ',' && charArr[lastChar + 1] != ' ')) {
-                result.add(str.substring(firstChar, lastChar));
-                firstChar = lastChar + 1;
-            }
-        }
-        result.add(str.substring(firstChar, lastChar));
-        return result.toArray(new String[0]);
     }
 
     @Override
@@ -90,13 +67,16 @@ public class CsvReader implements DataManager{
                 var line = raf.readLine();
                 result.add(String.format("%s[%s]", key, line));
             }
+
+        raf.close();
+
         return result.toArray(new String[0]);
     }
 
     private String[] numberOrderSort(String[] data) throws IOException {
         var raf = new RandomAccessFile(filePath, "r");
         var result = new ArrayList<String>();
-        TreeMultimap<Double, String> tree = TreeMultimap.create();
+        MultiTree<Double, String> tree = new MultiTree<>();
         for (String key : data) {
             Double numberKey = Double.valueOf(key);
             for (long offset : content.get(key)) {
@@ -106,15 +86,19 @@ public class CsvReader implements DataManager{
             }
         }
 
+        raf.close();
+
         DecimalFormat df = new DecimalFormat("0", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-        df.setMaximumFractionDigits(40);
+        df.setMaximumFractionDigits(15);
         for (Double key : tree.keySet()){
             for (String line : tree.get(key)) {
+                System.out.println(key);
                 result.add(String.format("%s[%s]", df.format(key), line));
             }
         }
         return result.toArray(new String[0]);
     }
+
 
     public Boolean getIsString() {
         return isString;
