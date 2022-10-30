@@ -78,8 +78,7 @@ public class CsvReader implements DataManager{
             for (long offset : content.get(key)) {
                 raf.seek(offset);
                 var line = raf.readLine();
-                result.add(line.split(",(?! )")[columnNumber]);
-                result.add(line);
+                result.add(String.format("%s[%s]", line.split(",(?! )")[columnNumber], line));
             }
 
         return result;
@@ -94,8 +93,7 @@ public class CsvReader implements DataManager{
             for (Long offset : content.get(fileKey)) {
                     raf.seek(offset);
                     var line = raf.readLine();
-                    result.add(line.split(",(?! )")[columnNumber]);
-                    result.add(line);
+                    result.add(String.format("%s[%s]", line.split(",(?! )")[columnNumber], line));
                 }
         }
 

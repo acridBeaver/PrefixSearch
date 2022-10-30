@@ -31,10 +31,10 @@ public class MainApplication {
         var prefix = inputScanner.nextLine();
         while (!prefix.equals("!quit")) {
             String[] result = searchEngine.getOccurrences(prefix);
-            for (var i = 0; i < result.length; i += 2)
-                System.out.printf("%s[%s]\n", result[i], result[i + 1]);
+            for (String line : result)
+                System.out.println(line);
 
-            System.out.printf("\nКоличество найденных строк: %d\t", result.length / 2);
+            System.out.printf("\nКоличество найденных строк: %d\t", result.length);
             System.out.printf("Время, затраченное на поиск: %d мс\n", searchEngine.getElapsedTime());
 
             System.out.print("Введите строку: ");
