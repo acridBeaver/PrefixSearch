@@ -1,7 +1,6 @@
 package com.searcher.core.searchers;
 
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.*;
 
 public class PrefixSearcher implements Searcher {
     private final PrefixComparator comparator;
@@ -11,16 +10,21 @@ public class PrefixSearcher implements Searcher {
     }
 
     public String[] search(String[] target, String prefix) {
+
+        if (Objects.equals(prefix, ""))
+            return target;
+
         prefix = prefix.toLowerCase();
         var left = GetLeftIndex(target, prefix);
         if (left == -1)
             return new String[0];
+
         var right = GetRightIndex(target, prefix, left);
         return Arrays.copyOfRange(target, left, right + 1);
     }
 
     private int GetLeftIndex(String[] target, String prefix) {
-        var left = 0;
+        var left = -1;
         var right = target.length - 1;
         while (right - 1 > left){
             var mid = (left + right) / 2;
@@ -33,6 +37,7 @@ public class PrefixSearcher implements Searcher {
         if (comparator.compare(prefix, target[right]) != 0) {
             return -1;
         }
+
         return right;
     }
 
@@ -49,21 +54,12 @@ public class PrefixSearcher implements Searcher {
         return left;
     }
 
-    public void setCompareMode(Boolean isString) {
-        comparator.setOffset(isString);
-    }
-
     private static class PrefixComparator implements Comparator<String> {
-        private int offset;
-
-        public void setOffset(boolean isString) {
-            offset = isString ? 1 : 0;
-        }
 
         @Override
         public int compare(String prefix, String str) {
             var index = Math.min(prefix.length(), str.length());
-            var comparable = str.substring(offset, index + offset).toLowerCase();
+            var comparable = str.substring(0, index).toLowerCase();
             return prefix.compareTo(comparable);
         }
     }

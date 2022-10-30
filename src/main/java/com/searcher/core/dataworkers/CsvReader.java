@@ -5,9 +5,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.TreeMap;
 
 public class CsvReader implements DataManager{
     private final MultiTree<String, Long> content;
@@ -29,16 +30,16 @@ public class CsvReader implements DataManager{
         try {
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
             var offset = 0L;
-            var str = reader.readLine();
-            if (columnNumber >= str.split(",(?! )").length)
-                throw new IllegalArgumentException("максимальный номер колонки = " + str.split(",(?! )").length);
-            if (str.split(",(?! )")[columnNumber].startsWith("\""))
+            var line = reader.readLine();
+            if (columnNumber >= line.split(",(?! )").length)
+                throw new IllegalArgumentException("максимальный номер колонки = " + line.split(",(?! )").length);
+            if (line.split(",(?! )")[columnNumber].startsWith("\""))
                 isString = true;
-            while (str != null){
-                String[] line = str.split(",(?! )");
-                content.put(line[columnNumber], offset);
-                offset += str.getBytes(StandardCharsets.UTF_8).length + 1;
-                str = reader.readLine();
+            while (line != null){
+                String[] contentLine = line.split(",(?! )");
+                content.put(contentLine[columnNumber].replace("\"", "").toLowerCase(), offset);
+                offset += line.getBytes(StandardCharsets.UTF_8).length + 1;
+                line = reader.readLine();
             }
 
             reader.close();
@@ -66,7 +67,7 @@ public class CsvReader implements DataManager{
             for (long offset : content.get(key)) {
                 raf.seek(offset);
                 var line = raf.readLine();
-                result.add(key);
+                result.add(line.split(",(?! )")[columnNumber]);
                 result.add(line);
             }
 
@@ -76,28 +77,38 @@ public class CsvReader implements DataManager{
     }
 
     private String[] numberOrderSort(String[] data) throws IOException {
-        var raf = new RandomAccessFile(filePath, "r");
         var result = new ArrayList<String>();
-        MultiTree<Double, String> tree = new MultiTree<>();
+        var attitude = new HashMap<Double, String>();
+        var attitudeKey = -3000d;
+        var numericOrderTree = new TreeMap<Double, String>();
+        double numberKey;
         for (String key : data) {
-            Double numberKey = Double.valueOf(key);
-            for (long offset : content.get(key)) {
-                raf.seek(offset);
-                var line = raf.readLine();
-                tree.put(numberKey, line);
+            try {
+                numberKey = Double.parseDouble(key);
+            } catch (NumberFormatException e) {
+                attitude.put(attitudeKey, key);
+                numberKey = attitudeKey;
+                attitudeKey--;
             }
+            numericOrderTree.put(numberKey, key);
         }
 
+        var raf = new RandomAccessFile(filePath, "r");
+        for (Double key : numericOrderTree.keySet()){
+            String fileKey;
+            if (key <= -3000d)
+                fileKey = attitude.get(key);
+            else
+                fileKey = numericOrderTree.get(key);
+
+            for (Long offset : content.get(fileKey)) {
+                    raf.seek(offset);
+                    var line = raf.readLine();
+                    result.add(line.split(",(?! )")[columnNumber]);
+                    result.add(line);
+                }
+        }
         raf.close();
-
-        DecimalFormat df = new DecimalFormat("0", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-        df.setMaximumFractionDigits(15);
-        for (Double key : tree.keySet()){
-            for (String line : tree.get(key)) {
-                result.add(df.format(key));
-                result.add(line);
-            }
-        }
         return result.toArray(new String[0]);
     }
 
@@ -115,7 +126,7 @@ public class CsvReader implements DataManager{
 
         public void put(K key, V value) {
             if (!treeMap.containsKey(key))
-                treeMap.put(key, new ArrayList<V>());
+                treeMap.put(key, new ArrayList<>());
             treeMap.get(key).add(value);
         }
 

@@ -15,7 +15,6 @@ public class SearchEngine {
     public SearchEngine(DataManager dataManager, Searcher searcher) {
         this.dataManager = dataManager;
         data = dataManager.GetData();
-        searcher.setCompareMode(dataManager.getIsString());
         this.searcher = searcher;
         this.timer = new StopWatch();
     }
