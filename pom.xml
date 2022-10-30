@@ -13,7 +13,7 @@
 
     <packaging>jar</packaging>
     <build>
-        <finalName>searcher</finalName>
+        <finalName>airports-search</finalName>
 
         <plugins>
             <plugin>
@@ -52,7 +52,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <classpathPrefix>searcher.lib/</classpathPrefix>
+                            <classpathPrefix>airports-search.lib/</classpathPrefix>
                             <mainClass>com.searcher.MainApplication</mainClass>
                         </manifest>
                     </archive>

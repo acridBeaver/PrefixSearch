@@ -12,22 +12,23 @@ import java.util.*;
 public class CsvReader implements DataManager{
     private final MultiTree<String, Long> content;
     private final String filePath;
+    private final int columnNumber;
     private Boolean isString;
 
-    public CsvReader(String filePath){
+    public CsvReader(String filePath, int columnNumber){
         this.filePath = filePath;
+        this.columnNumber = columnNumber - 1;
         content = new MultiTree<>();
         isString = false;
     }
 
     @Override
-    public String[] GetData(int columnNumber){
-        if (columnNumber < 1)
+    public String[] GetData(){
+        if (columnNumber < 0)
             throw new IllegalArgumentException("Номер колонки должен быть > 0");
-        columnNumber--;
         try {
             BufferedReader reader = new BufferedReader(new FileReader(filePath));
-            long offset = 0L;
+            var offset = 0L;
             var str = reader.readLine();
             if (columnNumber >= str.split(",(?! )").length)
                 throw new IllegalArgumentException("максимальный номер колонки = " + str.split(",(?! )").length);
