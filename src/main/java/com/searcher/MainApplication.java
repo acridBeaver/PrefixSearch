@@ -6,6 +6,9 @@ import com.searcher.core.dataworkers.DataManager;
 import com.searcher.core.searchers.PrefixSearcher;
 import com.searcher.core.searchers.Searcher;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
 import java.util.Scanner;
 
 public class MainApplication {
@@ -13,7 +16,15 @@ public class MainApplication {
 
     public static void main(String [] args) {
         if (args.length > 0 && args[0].matches("\\d+")) {
-            engine(new CsvReader("./src/main/resources/airports.csv", Integer.parseInt(args[0])),
+            var property = new Properties();
+            try {
+                var fis = new FileInputStream("src/main/resources/config.properties");
+                property.load(fis);
+                fis.close();
+            } catch (IOException e) {
+                System.out.println("Файл config.properties отсутствует");
+            }
+            engine(new CsvReader(property.getProperty("file.path"), Integer.parseInt(args[0])),
                     new PrefixSearcher());
             run();
         }
